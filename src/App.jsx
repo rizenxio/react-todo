@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react'
 import './App.css'
 import {MdOutlineDelete} from "react-icons/md"
 import { FaRegCheckCircle } from "react-icons/fa";
+import { AiOutlineDelete } from "react-icons/ai";
 function App() {
   const [isCompleteScreen,setIsCompleteScreen] = useState(false)
   const [allTodo , setTodo] = useState([])
   const [newTitle,setNewTitle] = useState("")
   const [newDescription,setNewDescription] = useState("")
+  const [completed, setCompletedtodo] = useState([])
   const handleAddtodo =()=>{
     let newTodoItem = {
       title:newTitle,
@@ -17,10 +19,50 @@ function App() {
     setTodo(updateTodoArr)
     localStorage.setItem('todolist',JSON.stringify(updateTodoArr))
   }
+  const handleDeleteTodo = index =>{
+    let reducedTodo = [...allTodo]
+    reducedTodo.splice(index)
+
+    localStorage.setItem('todolist',JSON.stringify(reducedTodo))
+    setTodo(reducedTodo )
+  }
+  const handleCompleted =index=>{
+    let now = new Date()
+    let dd  = now.getDate()
+    let mm = now.getMonth() + 1
+    let yyyy = now.getFullYear()
+    let h = now.getHours()
+    let m = now.getMinutes()
+    let s = now.getSeconds()
+    let completedOn = dd + '/' + mm + '/' + yyyy + ' at ' + h + ':' + m + ':' + s  
+
+    let filteredItem = {
+      ...allTodo[index],
+      completedOn:completedOn
+    }
+
+    let updatedCompletedArr = [...completed]
+    updatedCompletedArr.push(filteredItem)
+    setCompletedtodo(updatedCompletedArr)
+    handleDeleteTodo(index)
+    localStorage.setItem('completedTodo',JSON.stringify(updatedCompletedArr))
+  }
+
+  const handleDeleteCompletedTodo=(index)=>{
+    let reducedTodo = [...completed]
+    reducedTodo.splice(index)
+
+    localStorage.setItem('completedTodo',JSON.stringify(reducedTodo))
+    setCompletedtodo(reducedTodo )
+  }
   useEffect(()=>{
 let savedTodo = JSON.parse(localStorage.getItem('todolist'))
+let savedCompletedTodo = JSON.parse(localStorage.getItem('completedTodo'))
 if(savedTodo){
   setTodo(savedTodo)
+}
+if(savedCompletedTodo){
+  setCompletedtodo(savedCompletedTodo)
 }
   },[])
   return (
@@ -46,8 +88,7 @@ if(savedTodo){
       </div>
 
       <div className="todo-list">
-
-        {allTodo.map((item,index)=>{
+        {isCompleteScreen === false && allTodo.map((item,index)=>{
           return(
             <div className="todo-list-item" key={index}>
           <div>
@@ -55,8 +96,22 @@ if(savedTodo){
           <p>{item.description}</p>
           </div>
         <div>
-        <MdOutlineDelete className='icon'/>
-        <FaRegCheckCircle className='check-icon'/>
+        <AiOutlineDelete type='button' className='icon' onClick={()=>handleDeleteTodo(index)} title='Delete?' />
+        <FaRegCheckCircle type='button' className='check-icon' onClick={()=>handleCompleted(index)} title='check?'/>
+        </div>
+        </div>
+          )
+        })}
+      {isCompleteScreen === true && completed.map((item,index)=>{
+          return(
+            <div className="todo-list-item" key={index}>
+          <div>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+          <p><small></small>completed on :{item.completedOn}</p>
+          </div>
+        <div>
+        <AiOutlineDelete type='button' className='icon' onClick={()=>handleDeleteCompletedTodo(index)} title='Delete?' />
         </div>
         </div>
           )
